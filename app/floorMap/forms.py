@@ -1,12 +1,46 @@
 # coding: utf-8
 
+from datetime import date, datetime
+
 from django import forms
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django_filters import FilterSet, MethodFilter
 
 from app.company.models import Company
 from app.floorMap.models import Rent, Room, RoomType, Settings
+
+
+class InvoiceFilter(FilterSet):
+    date = MethodFilter(
+        label=_(u"Select a month"),
+        widget=forms.DateInput(
+            format='%B %Y',
+            attrs={
+                'class': 'ui-monthpicker'
+            }
+        ),
+        action='date_filter'
+    )
+
+    class Meta:
+        model = Rent
+        fields = ['date']
+
+    @staticmethod
+    def date_filter(queryset, value):
+        try:
+            input_date = datetime.strptime(value, '%B %Y')
+            year = input_date.year
+            month = input_date.month
+        except ValueError or TypeError:
+            return queryset.none()
+
+        return queryset.filter(
+            date_start__lt=date(year, month % 12 + 1, 1),
+            date_end__gte=date(year, month, 1)
+        )
 
 
 class RoomFormUpdate(forms.ModelForm):

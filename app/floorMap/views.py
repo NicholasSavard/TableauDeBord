@@ -1,6 +1,5 @@
 # coding: utf-8
 
-from datetime import date
 from itertools import chain
 
 from django.contrib import messages
@@ -13,7 +12,7 @@ from django.views import generic
 
 from app.floorMap.models import Room, Rent, Settings
 from app.floorMap.forms import RentalForm, RentalFormUpdate, RoomFormUpdate, \
-    SettingsFormUpdate
+    InvoiceFilter, SettingsFormUpdate
 
 
 class FloorMapIndex(generic.ListView):
@@ -209,6 +208,27 @@ class RentalDelete(generic.DeleteView):
     def get_context_data(self, **kwargs):
         context = super(RentalDelete, self).get_context_data(**kwargs)
         context['rental'] = kwargs['object']
+        return context
+
+
+class Invoicing(generic.TemplateView):
+    template_name = 'rental/invoicing.html'
+
+    # You need to have access as centech only
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        if self.request.user.profile.isCentech():
+            return super(Invoicing, self).dispatch(*args, **kwargs)
+        return HttpResponseRedirect("/user/noAccessPermissions")
+
+    def get_context_data(self, **kwargs):
+        context = super(Invoicing, self).get_context_data(**kwargs)
+
+        context['filter'] = InvoiceFilter(
+            self.request.GET,
+            queryset=Rent.objects.order_by('company__name', 'room__code')
+        )
+
         return context
 
 
