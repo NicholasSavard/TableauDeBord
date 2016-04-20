@@ -221,6 +221,20 @@ class Rent(models.Model):
             str(self.date_end)
         ))
 
+    # Annual before taxes
+    def get_annual_fee(self):
+        surface = (self.room.surface_size or 0)
+        annual_pricing = self.pricing
+
+        annual_fee = surface * annual_pricing
+
+        return round(annual_fee, 2)
+
+    # Monthly before taxes
+    def get_monthly_fee(self):
+        monthly_fee = self.get_annual_fee() / 12
+        return round(monthly_fee, 2)
+
 
 # SIGNAL CONNECTION
 models.signals.post_save.connect(
