@@ -4,17 +4,21 @@ from __future__ import division
 
 from django import template
 
+from app.floorMap.models import Settings
+
 register = template.Library()
 
 
 @register.filter
 def tax_tps(before_taxes):
-    return round(before_taxes * 0.05, 2)
+    tax_pct = float(Settings.load().taxes_tps / 100)
+    return round(before_taxes * tax_pct, 2)
 
 
 @register.filter
 def tax_tvq(before_taxes):
-    return round(before_taxes * 0.09975, 2)
+    tax_pct = float(Settings.load().taxes_tvq / 100)
+    return round(before_taxes * tax_pct, 2)
 
 
 @register.filter

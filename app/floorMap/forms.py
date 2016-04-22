@@ -219,11 +219,25 @@ class RentalFormUpdate(RentalForm):
 class SettingsFormUpdate(forms.ModelForm):
     class Meta:
         model = Settings
-        fields = ['default_annual_rental_rate']
+        fields = ['default_annual_rental_rate', 'taxes_tps', 'taxes_tvq']
 
     default_annual_rental_rate = forms.DecimalField(
         label=_(u"Default annual price (per sq. ft.)"),
         required=True,
         max_digits=5,
         decimal_places=2
+    )
+
+    taxes_tps = forms.DecimalField(
+        label=_(u"TPS %"),
+        required=True,
+        max_digits=7,
+        decimal_places=3
+    )
+
+    taxes_tvq = forms.DecimalField(
+        label=_(u"TVQ %"),
+        required=True,
+        max_digits=7,
+        decimal_places=3
     )

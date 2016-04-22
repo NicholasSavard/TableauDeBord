@@ -6,8 +6,10 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Border, Alignment, Font
 from openpyxl.utils import column_index_from_string, get_column_letter
 
-import app.floorMap
 from django.conf import settings
+
+import app.floorMap
+from app.floorMap.models import Settings
 
 APP_ROOT = app.floorMap.__path__[0]
 
@@ -61,6 +63,9 @@ def export_to_excel(invoice_rents, file_name):
             # Copy styles & pushes total
             insert_row(ws, row_data)
 
+            tps = Settings.load().taxes_tps / 100
+            tvq = Settings.load().taxes_tvq / 100
+
             # Data to insert
             data = dict(
                 name=rent.company.name,
@@ -70,8 +75,8 @@ def export_to_excel(invoice_rents, file_name):
                 ),
                 payment_method=rent.company.payment_method,
                 fees="=" + str(rent.get_monthly_fee()),
-                tps="=ROUND(D{row}*0.05, 2)".format(row=current_row),
-                tvq="=ROUND(D{row}*0.09975, 2)".format(row=current_row),
+                tps="=ROUND(D{row}*{tps}, 2)".format(row=current_row, tps=tps),
+                tvq="=ROUND(D{row}*{tvq}, 2)".format(row=current_row, tvq=tvq),
                 total_fees="=SUM(D{row}:F{row})".format(row=current_row),
                 phone=rent.company.phone,
                 email=rent.company.person_in_charge.user.email,
