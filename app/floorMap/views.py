@@ -10,9 +10,10 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
 from django.views import generic
 
-from app.floorMap.models import Room, Rent, Settings
 from app.floorMap.forms import RentalForm, RentalFormUpdate, RoomFormUpdate, \
     InvoiceFilter, SettingsFormUpdate
+from app.floorMap.models import Room, Rent, Settings
+from app.floorMap.static.py.invoice_export import export_to_excel
 
 
 class FloorMapIndex(generic.ListView):
@@ -224,11 +225,20 @@ class Invoicing(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Invoicing, self).get_context_data(**kwargs)
 
-        context['filter'] = InvoiceFilter(
+        invoice_filter = InvoiceFilter(
             self.request.GET,
             queryset=Rent.objects.order_by('company__name', 'room__code')
         )
+        context['filter'] = invoice_filter
 
+        if 'date' in self.request.GET:
+            context['invoice_date'] = self.request.GET['date']
+
+            # Exports data to Excel file
+            temp_file = export_to_excel(
+                invoice_filter,
+                "Facturation_entreprises.xlsx"
+            )
         return context
 
 
